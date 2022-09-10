@@ -1,0 +1,2 @@
+/usr/bin/ar qc libMSFO.a CMakeFiles/MSFO.dir/MSFO.cu.o
+/usr/bin/ranlib libMSFO.a
