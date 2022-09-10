@@ -1,8 +1,16 @@
+// CUDA
 #include <cuda_runtime.h>
-#include <cuco/dynamic_map.cuh>
+
+// cuCollections
 #include <cuco/allocator.hpp>
+#include <cuco/dynamic_map.cuh>
+
+// STD
 #include <memory>
 #include <limits>
+
+// Thrust
+#include <thrust/device_vector.h>
 
 #define KeyT int64_t
 #define ValT size_t
@@ -35,23 +43,22 @@ class cucoHashtable
          * num_tables_ : total number of tables
          * num_shards_ : total number of shards
          */
-        void FusedBatchLookupOrCreate(KeyT* all_key,
-                                      size_t* slot_size_cnt,
-                                      size_t table_id_,
-                                      size_t num_tables_,
-                                      size_t num_shards_);
+        void FusedBatchLookupOrCreate(KeyT* all_key, /* GPU */
+                                      size_t* slot_size_cnt, /* CPU */
+                                      size_t table_id_ = 0,
+                                      size_t num_tables_ = 1,
+                                      size_t num_shards_ = 1);
 
 
 
         ~cucoHashtable()
-        {
-            map_.reset();
-        }
+        {}
 
     private:
         cudaStream_t stream_;
         int device_id_;
         std::unique_ptr<cuco::dynamic_map<KeyT, ValT>> map_;
+        thrust::device_vector<ValT> mem_index_;
 };
 
 }

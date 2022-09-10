@@ -1,3 +1,0 @@
-/home/fangzhouai/MultiShardFusedOperation/build/_deps/libcudacxx-subbuild/CMakeFiles/libcudacxx-populate.dir
-/home/fangzhouai/MultiShardFusedOperation/build/_deps/libcudacxx-subbuild/CMakeFiles/edit_cache.dir
-/home/fangzhouai/MultiShardFusedOperation/build/_deps/libcudacxx-subbuild/CMakeFiles/rebuild_cache.dir

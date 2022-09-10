@@ -1,6 +1,12 @@
 {
     "files.associations": {
         "limits": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "new": "cpp",
+        "array": "cpp",
+        "initializer_list": "cpp",
+        "string_view": "cpp",
+        "utility": "cpp",
+        "barrier": "cpp"
     }
 }
