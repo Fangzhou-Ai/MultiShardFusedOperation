@@ -215,17 +215,16 @@ void MSFO::cucoHashtable::FusedBatchLookupOrCreate(KeyT* all_key_first, /* GPU *
         if (capacity_remaining >= map_->get_min_insert_size())
         {
             *(map_->get_num_successes()) = 0;
-            int device_id;
-            CUCO_CUDA_TRY(cudaMemPrefetchAsync(map_->get_num_successes(), sizeof(atomicT), device_id));
+            CUCO_CUDA_TRY(cudaMemPrefetchAsync(map_->get_num_successes(), sizeof(atomicT), device_id_));
             auto n = std::min(capacity_remaining, num_to_insert);
             num_to_end_lookup = num_to_start_lookup + n;
             // Read this before change the size of  grid/block
             // https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#grid-synchronization-cg
             cudaDeviceProp deviceProp;
             cudaGetDeviceProperties(&deviceProp, device_id_);
-            auto const block_size = 1024;
+            auto const block_size = 128;
             auto const tile_size = 4;
-            auto const grid_size = deviceProp.multiProcessorCount;
+            auto const grid_size = deviceProp.multiProcessorCount * 10;
             params p = {
                 all_key_first,
                 thrust::raw_pointer_cast(mem_index_.data()),
