@@ -41,6 +41,7 @@ class cucoHashtable
             CUCO_CUDA_TRY(cudaMallocManaged((void**)&start_idx, sizeof(cuda::atomic<std::size_t, cuda::thread_scope_device>)));
             start_idx->store(0);
             CUCO_CUDA_TRY(cudaMemPrefetchAsync(start_idx, sizeof(cuda::atomic<std::size_t, cuda::thread_scope_device>), device_id_, stream_));
+            CUCO_CUDA_TRY(cudaGetDeviceProperties(&deviceProp, device_id_));
             CUCO_CUDA_TRY(cudaDeviceSynchronize());
         }
 
@@ -61,7 +62,7 @@ class cucoHashtable
                                       size_t num_shards_ = 1);
 
         size_t get_size() {return map_->get_size();}
-        const ValT* get_idx_ptr(){return thrust::raw_pointer_cast(mem_index_.data());}
+        thrust::device_vector<ValT>& get_mem_idx(){return mem_index_;}
         ~cucoHashtable()
         {
             cudaFree(start_idx);
@@ -74,6 +75,7 @@ class cucoHashtable
         std::unique_ptr<cuco::dynamic_map<KeyT, ValT>> map_;
         thrust::device_vector<ValT> mem_index_;
         std::mutex mutex_;
+        cudaDeviceProp deviceProp;
 };
 
 }

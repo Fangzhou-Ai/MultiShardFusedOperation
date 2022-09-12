@@ -85,12 +85,12 @@ __global__ void ker_FusedBatchLookupOrCreate(params p)
         }
     }
 
-    
+    ValT* idx_first = all_idx_first + num_to_start_lookup;
+
     for(int sid = shard_start_idx; sid <= shard_end_idx; sid++)
     {
         // get key offset and num of keys in this  shard need to lookup
         const KeyT* key_first;
-        ValT* idx_first = all_idx_first + num_to_start_lookup;
         size_t num_to_lookup_this_shard;
         if(sid == shard_start_idx) // at starting shard, need to offset start key
         {
@@ -117,7 +117,7 @@ __global__ void ker_FusedBatchLookupOrCreate(params p)
             }
         }
         // Lookup keys
-        for(size_t id = key_idx; id < num_to_lookup_this_shard; id += (gridDim.x * blockDim.x) / tile_size)
+        for(size_t id = key_idx; id < num_to_lookup_this_shard; id += _grid.size() / tile_size)
         {
             ValT found_value  = empty_val_sentinel;
             KeyT key =  key_first[id];
@@ -153,7 +153,8 @@ __global__ void ker_FusedBatchLookupOrCreate(params p)
             }
             
         }
-
+        // offset index position to next shard if needed
+        idx_first += num_to_lookup_this_shard;
         _grid.sync(); // Sync before we goes to next shard
     }
 }
@@ -215,14 +216,12 @@ void MSFO::cucoHashtable::FusedBatchLookupOrCreate(KeyT* all_key_first, /* GPU *
         if (capacity_remaining >= map_->get_min_insert_size())
         {
             *(map_->get_num_successes()) = 0;
-            CUCO_CUDA_TRY(cudaMemPrefetchAsync(map_->get_num_successes(), sizeof(atomicT), device_id_));
+            CUCO_CUDA_TRY(cudaMemPrefetchAsync(map_->get_num_successes(), sizeof(atomicT), device_id_, stream_));
             auto n = std::min(capacity_remaining, num_to_insert);
             num_to_end_lookup = num_to_start_lookup + n;
             // Read this before change the size of grid/block
             // https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#grid-synchronization-cg
             // Tips: Strcitly follow this grid/block size settings when you need cooperative_group::this_grid().sync()
-            cudaDeviceProp deviceProp;
-            cudaGetDeviceProperties(&deviceProp, device_id_);
             auto const block_size = 1024;
             auto const tile_size = 4;
             auto const grid_size = deviceProp.multiProcessorCount;
