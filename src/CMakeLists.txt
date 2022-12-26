@@ -9,4 +9,5 @@ target_link_libraries(MSFO
                       PRIVATE 
                       CUDA::cudart
                       CUDA::cuda_driver)
-                    
+
+set_property(TARGET MSFO PROPERTY CUDA_ARCHITECTURES native)

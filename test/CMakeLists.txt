@@ -10,6 +10,7 @@ FetchContent_MakeAvailable(googletest)
 include(GoogleTest)
 
 add_executable(TEST TEST.cu)
+set_property(TARGET TEST PROPERTY CUDA_ARCHITECTURES native)
 
 target_include_directories(TEST
                            PUBLIC
